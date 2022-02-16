@@ -1,0 +1,19 @@
+{
+  "Developed Markets": {
+    "ticker": "IWDA.LON",
+    "tabs": [
+      {
+        "period": "monthly",
+        "points": 60
+      },
+      {
+        "period": "weekly",
+        "points": 52
+      },
+      {
+        "period": "daily",
+        "points": 90
+      }
+    ]
+  }
+}
