@@ -15,5 +15,22 @@
         "points": 90
       }
     ]
+  },
+  "Developing Markets": {
+    "ticker": "VWO",
+    "tabs": [
+      {
+        "period": "monthly",
+        "points": 60
+      },
+      {
+        "period": "weekly",
+        "points": 52
+      },
+      {
+        "period": "daily",
+        "points": 90
+      }
+    ]
   }
 }
