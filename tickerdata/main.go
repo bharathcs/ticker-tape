@@ -50,9 +50,27 @@ func ReadData(name, ticker, period string, points int, csvData io.Reader) (*Tick
 }
 
 func (t TickerData) CreateLineChart(writer io.Writer) {
+
+	minVal, maxVal := math.Inf(1), math.Inf(-1)
+	for _, val := range t.Data {
+		value, _ := strconv.ParseFloat(fmt.Sprint(val.Value), 32)
+		minVal = math.Min(minVal, value)
+		maxVal = math.Max(maxVal, value)
+	}
+
+	buffer := 0.1 * (maxVal - minVal)
+	minVal, maxVal = minVal-buffer, maxVal+buffer
+	minVal, maxVal = math.Floor(minVal*10)/10, math.Ceil(maxVal*10)/10
+
 	line := charts.NewLine()
 	line.SetGlobalOptions(charts.WithTitleOpts(opts.Title{
 		Title: fmt.Sprintf("%s (%s) - %s (%d)", t.Name, t.Ticker, t.Period, t.Points),
+	}), charts.WithYAxisOpts(opts.YAxis{
+		Name: "USD",
+		Type: "value",
+		Show: true,
+		Min:  minVal,
+		Max:  maxVal,
 	}))
 
 	line.SetXAxis(t.XAxisSeries).
