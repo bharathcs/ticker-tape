@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/go-echarts/go-echarts/v2/opts"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -13,6 +12,8 @@ import (
 	"sync"
 	"ticker-tape/config"
 	"ticker-tape/tickerdata"
+
+	"github.com/go-echarts/go-echarts/v2/opts"
 )
 
 // generate random data for bar chart
@@ -29,8 +30,9 @@ func main() {
 	apikeyFlag := flag.String("apikey", "-----", "Private AlphaVantage API key")
 	flag.Parse()
 
-	userConfig := readConfig(*configFilePathFlag)
-	saveToLocal(parseConfig(userConfig, *apikeyFlag))
+	userConfig := parseConfig(readConfig(*configFilePathFlag), *apikeyFlag)
+	saveToLocal(userConfig)
+	renderCharts(userConfig)
 }
 
 func readConfig(filepath string) []byte {
@@ -60,20 +62,24 @@ func saveToLocal(userConfig config.Config) {
 			failIfError(fmt.Sprintf("Failed to create file '%s':", filepath), err)
 
 			apiCallsWg.Add(1)
+
+			ticker := tickerConfig // intermediate variable for go routine (avoid loop problems)
 			go func() {
 				defer apiCallsWg.Done()
 				f.Truncate(0)
-				tickerConfig.QueryConfig.SaveCsvData(f)
+				ticker.QueryConfig.SaveCsvData(f)
 				f.Close()
 			}()
 		}
 	}
 
 	apiCallsWg.Wait()
+}
 
+func renderCharts(userConfig config.Config) {
 	var renderCallsWg sync.WaitGroup
 
-	err = os.MkdirAll("out", os.ModePerm)
+	err := os.MkdirAll("out", os.ModePerm)
 	failIfError("The folder 'out' could not be created:", err)
 
 	for name, tickerConfigs := range userConfig {
@@ -81,15 +87,16 @@ func saveToLocal(userConfig config.Config) {
 			renderCallsWg.Add(1)
 
 			src, err := os.Open("data/" + getFilePath(name, i, ".csv"))
-			failIfError("Csv data could not be created:", err)
+			failIfError("Csv data could not be read:", err)
 
 			filepath := "out/" + getFilePath(name, i, ".html")
 			f, err := os.Create(filepath)
 			failIfError("Html file could not be created:", err)
 
+			ticker := tickerConfig // intermediate variable for go routine (avoid loop problems)
 			go func() {
 				defer renderCallsWg.Done()
-				t, err := tickerdata.ReadData(name, tickerConfig.QueryConfig.Ticker, tickerConfig.Period, tickerConfig.Points, src)
+				t, err := tickerdata.ReadData(name, ticker.QueryConfig.Ticker, ticker.Period, ticker.Points, src)
 				failIfError("Ticker data could not be created:", err)
 
 				f.Truncate(0)
@@ -136,7 +143,7 @@ func saveToLocal(userConfig config.Config) {
 	failIfError("Html file could not be created:", err)
 	mainFile.Truncate(0)
 	t.Execute(mainFile, htmlLinks)
-	fmt.Println("Savedto ", filepath)
+	fmt.Println("Saved to ", filepath)
 }
 
 func getFilePath(name string, index int, extension string) string {
