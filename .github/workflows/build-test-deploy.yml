@@ -1,6 +1,8 @@
 name: Build, Test, Deploy
 
 on:
+  schedule:
+    - cron: '42 16 * * *' # execute every day at UTC 16:42
   push:
     branches: [ main ]
   pull_request:
