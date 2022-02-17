@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/go-echarts/go-echarts/v2/opts"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -101,6 +102,41 @@ func saveToLocal(userConfig config.Config) {
 
 	renderCallsWg.Wait()
 
+	var htmlLinks []struct {
+		Link string
+		Text string
+	}
+
+	for name, x := range userConfig {
+		for i, tab := range x {
+			filepath := "./" + getFilePath(name, i, ".html")
+			htmlLinks = append(htmlLinks, struct {
+				Link string
+				Text string
+			}{Link: filepath, Text: fmt.Sprintf("%s (%s)", name, tab.Period)})
+		}
+	}
+
+	t := template.Must(template.New("mainpage").Parse(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Centerpiece</title>
+</head>
+<body>
+{{range .}}
+	<a href="{{.Link}}">{{.Text}}</a></br>
+{{end}}
+</body>
+</html>
+`))
+	filepath := "out/" + "index.html"
+	mainFile, err := os.Create(filepath)
+	failIfError("Html file could not be created:", err)
+	mainFile.Truncate(0)
+	t.Execute(mainFile, htmlLinks)
+	fmt.Println("Savedto ", filepath)
 }
 
 func getFilePath(name string, index int, extension string) string {
