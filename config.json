@@ -7,10 +7,6 @@
         "points": 60
       },
       {
-        "period": "weekly",
-        "points": 52
-      },
-      {
         "period": "daily",
         "points": 90
       }
@@ -22,10 +18,6 @@
       {
         "period": "monthly",
         "points": 60
-      },
-      {
-        "period": "weekly",
-        "points": 52
       },
       {
         "period": "daily",
