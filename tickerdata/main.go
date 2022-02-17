@@ -3,11 +3,12 @@ package tickerdata
 import (
 	"encoding/csv"
 	"fmt"
-	"github.com/go-echarts/go-echarts/v2/charts"
-	"github.com/go-echarts/go-echarts/v2/opts"
 	"io"
 	"math"
 	"strconv"
+
+	"github.com/go-echarts/go-echarts/v2/charts"
+	"github.com/go-echarts/go-echarts/v2/opts"
 )
 
 type TickerData struct {
@@ -32,10 +33,10 @@ func ReadData(name, ticker, period string, points int, csvData io.Reader) (*Tick
 		xAxisLabels = append([]string{row[0]}, xAxisLabels...)
 		high, _ := strconv.ParseFloat(row[2], 10)
 		low, _ := strconv.ParseFloat(row[3], 10)
-		data = append(data, opts.LineData{
+		data = append([]opts.LineData{opts.LineData{
 			Value:  math.Round((high+low)/2.0*100) / 100, // avg of high + low, rounded to 2dp
 			Symbol: ticker,
-		})
+		}}, data...)
 	}
 
 	return &TickerData{
@@ -44,7 +45,7 @@ func ReadData(name, ticker, period string, points int, csvData io.Reader) (*Tick
 		Data:        data[len(data)-points:],
 		Period:      period,
 		Points:      points,
-		XAxisSeries: xAxisLabels[:points],
+		XAxisSeries: xAxisLabels[len(xAxisLabels)-points:],
 	}, nil
 }
 
