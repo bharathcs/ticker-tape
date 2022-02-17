@@ -33,7 +33,7 @@ func ReadData(name, ticker, period string, points int, csvData io.Reader) (*Tick
 		xAxisLabels = append([]string{row[0]}, xAxisLabels...)
 		high, _ := strconv.ParseFloat(row[2], 10)
 		low, _ := strconv.ParseFloat(row[3], 10)
-		data = append([]opts.LineData{opts.LineData{
+		data = append([]opts.LineData{{
 			Value:  math.Round((high+low)/2.0*100) / 100, // avg of high + low, rounded to 2dp
 			Symbol: ticker,
 		}}, data...)
@@ -49,7 +49,7 @@ func ReadData(name, ticker, period string, points int, csvData io.Reader) (*Tick
 	}, nil
 }
 
-func (t TickerData) CreateLineChart(writer io.Writer) {
+func (t TickerData) CreateLineChart(writer io.Writer) error {
 
 	minVal, maxVal := math.Inf(1), math.Inf(-1)
 	for _, val := range t.Data {
@@ -81,5 +81,5 @@ func (t TickerData) CreateLineChart(writer io.Writer) {
 			TriggerOn: "mousemove|click",
 		})).
 		SetSeriesOptions(charts.WithAreaStyleOpts(opts.AreaStyle{Opacity: 0.2}))
-	line.Render(writer)
+	return line.Render(writer)
 }

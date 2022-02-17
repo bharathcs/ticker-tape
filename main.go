@@ -6,24 +6,12 @@ import (
 	"html/template"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"os"
 	"strings"
 	"sync"
 	"ticker-tape/config"
 	"ticker-tape/tickerdata"
-
-	"github.com/go-echarts/go-echarts/v2/opts"
 )
-
-// generate random data for bar chart
-func generateBarItems() []opts.BarData {
-	items := make([]opts.BarData, 0)
-	for i := 0; i < 7; i++ {
-		items = append(items, opts.BarData{Value: rand.Intn(300)})
-	}
-	return items
-}
 
 func main() {
 	configFilePathFlag := flag.String("config", "config.json", "Path to json configuration file")
@@ -66,9 +54,12 @@ func saveToLocal(userConfig config.Config) {
 			ticker := tickerConfig // intermediate variable for go routine (avoid loop problems)
 			go func() {
 				defer apiCallsWg.Done()
-				f.Truncate(0)
-				ticker.QueryConfig.SaveCsvData(f)
-				f.Close()
+				_ = f.Truncate(0)
+				err := ticker.QueryConfig.SaveCsvData(f)
+				if err != nil {
+					failIfError("Failed to execute query and save results", err)
+				}
+				_ = f.Close()
 			}()
 		}
 	}
@@ -99,9 +90,11 @@ func renderCharts(userConfig config.Config) {
 				t, err := tickerdata.ReadData(name, ticker.QueryConfig.Ticker, ticker.Period, ticker.Points, src)
 				failIfError("Ticker data could not be created:", err)
 
-				f.Truncate(0)
-				t.CreateLineChart(f)
-				f.Close()
+				_ = f.Truncate(0)
+				err = t.CreateLineChart(f)
+				failIfError("Chart could not be rendered in html", err)
+
+				_ = f.Close()
 				fmt.Println("Saved to ", filepath)
 			}()
 		}
@@ -140,9 +133,13 @@ func renderCharts(userConfig config.Config) {
 `))
 	filepath := "out/" + "index.html"
 	mainFile, err := os.Create(filepath)
+	_ = mainFile.Truncate(0)
 	failIfError("Html file could not be created:", err)
-	mainFile.Truncate(0)
-	t.Execute(mainFile, htmlLinks)
+
+	err = t.Execute(mainFile, htmlLinks)
+	if err != nil {
+		failIfError("Html file could not be created:", err)
+	}
 	fmt.Println("Saved to ", filepath)
 }
 
