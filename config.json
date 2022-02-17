@@ -3,12 +3,12 @@
     "ticker": "IWDA.LON",
     "tabs": [
       {
-        "period": "monthly",
+        "period": "daily",
         "points": 60
       },
       {
-        "period": "daily",
-        "points": 90
+        "period": "weekly",
+        "points": 240
       }
     ]
   },
@@ -16,12 +16,12 @@
     "ticker": "VWO",
     "tabs": [
       {
-        "period": "monthly",
+        "period": "daily",
         "points": 60
       },
       {
-        "period": "daily",
-        "points": 90
+        "period": "weekly",
+        "points": 240
       }
     ]
   }
